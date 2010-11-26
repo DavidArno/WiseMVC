@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="*"
+				xmlns:flexunit="flexunit.flexui.*"
+				creationComplete="onCreationComplete()" viewSourceURL="srcview/index.html">
+	
+	<mx:Script>
+		<![CDATA[
+			import flexunit.framework.TestSuite;
+			
+			import org.wisemvc.as3.core.controller.ControllerTest;
+			import org.wisemvc.as3.core.controller.ObserverControllerTest;
+			import org.wisemvc.as3.core.model.ModelTest;
+			import org.wisemvc.as3.core.view.ViewTest;
+			import org.wisemvc.as3.patterns.command.MacroCommandTest;
+			import org.wisemvc.as3.patterns.command.SimpleCommandTest;
+			import org.wisemvc.as3.patterns.mediator.MediatorTest;
+			import org.wisemvc.as3.patterns.observer.NotificationTest;
+			import org.wisemvc.as3.patterns.observer.ObserverTest;
+			import org.wisemvc.as3.patterns.proxy.ProxyTest;
+			
+			public function onCreationComplete():void
+			{
+				testRunner.test = createSuite();
+				testRunner.startTest();
+			}
+			
+			private function createSuite():TestSuite
+			{
+				var ts:TestSuite = new TestSuite();
+				
+				ts.addTest(NotificationTest.suite());
+				ts.addTest(ObserverTest.suite());
+				ts.addTest(SimpleCommandTest.suite());
+				ts.addTest(MacroCommandTest.suite());
+				ts.addTest(ProxyTest.suite());
+				ts.addTest(ModelTest.suite());
+				ts.addTest(MediatorTest.suite());
+				ts.addTest(ViewTest.suite());
+				ts.addTest(ControllerTest.suite());
+				ts.addTest(ObserverControllerTest.suite());
+				
+				return ts;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<flexunit:TestRunnerBase id="testRunner" width="100%" height="100%" />
+	
+</mx:Application>
