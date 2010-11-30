@@ -8,27 +8,29 @@
  * PureMVC - Copyright(c) 2006-08 Futurescale, Inc., Some rights reserved.
  * Your reuse is governed by the Creative Commons Attribution 3.0 United States License
  */
-package org.wisemvc.as3.core.controllerSupport
+package org.wisemvc.as3.core.controller
 {
-	import org.wisemvc.as3.core.Controller;
 	import org.wisemvc.as3.interfaces.INotification;
 	import org.wisemvc.as3.interfaces.IObserver;
 	import org.wisemvc.as3.patterns.observer.Notification;
 
 	/**
 	 * <code>NotificationSender</code> forms the most basic, heavily encapulated,
-	 * version of <code>Control</code> to which classes get access. It provides support for
-	 * sending notifications.
+	 * aspect of the MVC controller to which classes get access. It provides 
+	 * support for sending notifications.
 	 * 
 	 * <p>In addition, it also provides a mechanism for progressively compromising
-	 * the <code>Control</code> instance's encapsulation and the quality of the
-	 * MVC paradigm. On creation of and instance of <code>Control</code>, which is derived 
-	 * from this class, it may select to expose itself and/ or the intermediary class,
-	 * <code>NotificationSender</code> to the <code>Model</code>, <code>View</code> and
-	 * their subsidiary classes.</p>
+	 * the controller's integrity and the quality of the MVC paradigm. If it is 
+	 * supplied with either an instance of <code>Controller</code> or
+	 * <code>ObserverController</code> via its constructor, it will expose
+	 * these to <code>Model</code>. This enables <code>Proxies</code> in 
+	 * existing that did not follow PureMVC best practice to continue accessing
+	 * normally prohibited controller features, lessening the need to rewrite 
+	 * code.
 	 * 
-	 * <p>By itself, this class does nothing useful as it lacks the ability to add
-	 * observers. It is intended to be used via the <code>Controller</code> class.</p>
+	 * <p>Taken in isolation, this class does nothing useful as it lacks the 
+	 * ability to add observers. It is intended to be used via the 
+	 * <code>Controller</code> class.</p>
 	 */
 	public class NotificationSender
 	{
@@ -41,34 +43,42 @@ package org.wisemvc.as3.core.controllerSupport
 		protected var _observerMap:Array;
 		
 		/**
-		 * Defaults to null, but may be set to an instance of Controller by a derived
-		 * class. See @see #controller for more details.
+		 * Defaults to null, but may be set to an instance of Controller by
+		 * the constructor if really necessary.
 		 */
 		protected var _controller:Controller;
 
 		/**
-		 * Defaults to null, but may be set to an instance of ObserverController by a derived
-		 * class. See @see #observerCtrl for more details.
+		 * Defaults to null, but may be set to an instance of ObserverController
+		 * by the constructor if really necessary.
 		 */
 		protected var _observerCtrl:ObserverController;
 		
 		/**
-		 * Constructor.
+		 * Constructor
+		 *  
+		 * @param controller	An instance of Controller. Only to be supplied 
+		 * 						if it is to be exposed via the controller
+		 * 						property. Keep null to maintain MVC integrity
+		 * @param observerCtrl	An instance of ObserverController. As with
+		 * 						controller, this should only be supplied if
+		 * 						the integrity of the MVC needs compromising.
 		 */
-		public function NotificationSender()
+		public function NotificationSender(controller:Controller = null, 
+										   observerCtrl:ObserverController = null)
 		{
 			_observerMap = [];
-			_controller = null;
-			_observerCtrl = null;
+			_controller = controller;
+			_observerCtrl = observerCtrl;
 		}
 		
 		/**
-		 * If an instance of this class is created via <code>new Controller()</code>
-		 * then that instance may optionally choose to expose itself via this
-		 * property. If so, it returns that instance of <code>Controller</code>,
+		 * If an instance of <code>Controller</code> if supplied to the
+		 * constructor, it returns that instance of <code>Controller</code>;
 		 * otherwise it throws a ControllerStrictModeError error.
 		 * 
-		 * @throws	 ControllerStrictModeError	Thrown if controller is not exposed
+		 * @throws	ControllerStrictModeError	
+		 * 			Thrown if <code>Controller</code> is not defined.
 		 */
 		public function get controller():Controller
 		{
@@ -83,13 +93,12 @@ package org.wisemvc.as3.core.controllerSupport
 		}
 		
 		/**
-		 * If an instance of this class is created via <code>new Controller()</code>
-		 * then that instance may optionally choose to expose itself via this
-		 * property as an instance of <code>ObserverController</code>. If so, it 
-		 * returns that instance of <code>ObserverController</code>,
+		 * If an instance of <code>ObserverController</code> if supplied to the
+		 * constructor, it returns that instance of <code>ObserverController</code>;
 		 * otherwise it throws a ControllerStrictModeError error.
 		 * 
-		 * @throws	 ControllerStrictModeError	Thrown if observerCtrl is not exposed
+		 * @throws	 ControllerStrictModeError	
+		 * 			Thrown if <code>ObserverController</code> is not defined.
 		 */
 		public function get observerCtrl():ObserverController
 		{
@@ -135,10 +144,22 @@ package org.wisemvc.as3.core.controllerSupport
 		 * @param body the body of the notification (optional)
 		 * @param type the type of the notification (optional)
 		 */ 
-		public function sendNotification(notificationName:String, body:Object=null, type:String=null):void 
+		public function sendNotification(notificationName:String, 
+										 body:Object=null, 
+										 type:String=null):void 
 		{
 			notifyAllObservers(new Notification(notificationName, body, type));
 		}
+		
+		/**
+		 * Provides the controller classes direct access to the oberser map,
+		 * so they can add and remove items from it.  
+		 */
+		internal function get observerMap():Array
+		{
+			return _observerMap;
+		}
+		
 
 		/**
 		 * Notify the <code>IObservers</code> for a particular <code>INotification</code>.
@@ -150,20 +171,20 @@ package org.wisemvc.as3.core.controllerSupport
 		 * 
 		 * @param notification the <code>INotification</code> to notify <code>IObservers</code> of.
 		 */
-		protected function notifyAllObservers(notification:INotification):void
+		internal function notifyAllObservers(notification:INotification):void
 		{
-			if (_observerMap[notification.name] != null)
+			if (observerMap[notification.name] != null)
 			{
 				// Get a reference to the observers list for this notification name
-				var observers_ref:Array = _observerMap[notification.name] as Array;
+				var observersRef:Array = observerMap[notification.name] as Array;
 				
 				// Copy observers from reference array to working array, 
 				// since the reference array may change during the notification loop
 				var observers:Array = new Array(); 
 				var observer:IObserver;
-				for (var i:Number = 0; i < observers_ref.length; i++) 
+				for (var i:Number = 0; i < observersRef.length; i++) 
 				{
-					observer = observers_ref[i] as IObserver;
+					observer = observersRef[i] as IObserver;
 					observers.push(observer);
 				}
 				

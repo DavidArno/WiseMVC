@@ -4,7 +4,7 @@
  * All restrictions on the reuse or copying of this source is waived by the
  * copyright owner save that this copyright notice must remain.
  */
-package org.wisemvc.as3.core.controllerSupport
+package org.wisemvc.as3.core.controller
 {
 	/**
 	 * An error thrown by <code>NotificationSender</code> when attempting to gain access

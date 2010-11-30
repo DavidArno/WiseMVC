@@ -10,31 +10,61 @@
  */
 package org.wisemvc.as3.core
 {
-	import org.wisemvc.as3.core.controllerSupport.NotificationSender;
+	import org.wisemvc.as3.core.controller.NotificationSender;
 	import org.wisemvc.as3.interfaces.IProxy;
 
+	/**
+	 * The <code>Model</code> class provides access to model objects (Proxies) 
+	 * by named lookup. 
+	 * 
+	 * <P>
+	 * The <code>Model</code> assumes these responsibilities:</P>
+	 * 
+	 * <UL>
+	 * <LI>Maintain a cache of <code>IProxy</code> instances.</LI>
+	 * <LI>Provide methods for registering, retrieving, and removing 
+	 * <code>IProxy</code> instances.</LI>
+	 * <LI>Notifiying <code>IProxys</code> when they are registered or 
+	 * removed.</LI>
+	 * </UL>
+	 *
+	 * @see Proxy
+	 * @see IProxy
+	 */
 	public class Model
 	{
-		protected var _controller:NotificationSender;
+		/**
+		 * Local record of the <code>NotificationSender</code> 
+		 */
+		protected var _sender:NotificationSender;
+		
+		/**
+		 * The array of registered proxies, indexed by proxy name
+		 */
 		protected var _proxyMap:Array;
 		
-		public function Model(controller:NotificationSender)
+		/**
+		 * Constructor
+		 *  
+		 * @param sender	Instance of <code>NotificationSender</code>
+		 * 					supplied by <code>Controller</code>
+		 */
+		public function Model(sender:NotificationSender)
 		{
-			_controller = controller;
-			_proxyMap = new Array();	
+			_sender = sender;
+			_proxyMap = [];	
 		}
 		
 		/**
-		 * The controller, as an instance of <code>NotificationSender</code>.
+		 * This Model's <code>NotificationSender</code>
 		 */
 		public function get sender():NotificationSender
 		{
-			return _controller;
+			return _sender;
 		}
-		
-		
+				
 		/**
-		 * Duplicates the @see #sender property using a language-agnostic format
+		 * Duplicates the sender property using a language-agnostic format
 		 */
 		public function getSender():NotificationSender
 		{
@@ -56,7 +86,10 @@ package org.wisemvc.as3.core
 		 * Retrieve an <code>IProxy</code> from the <code>Model</code>.
 		 * 
 		 * @param proxyName
-		 * @return the <code>IProxy</code> instance previously registered with the given <code>proxyName</code>.
+		 * 
+		 * @return the <code>IProxy</code> instance previously registered with 
+		 * the given <code>proxyName</code>. Null if the named proxy has not
+		 * been registered.
 		 */
 		public function retrieveProxy(proxyName:String):IProxy
 		{
@@ -67,7 +100,8 @@ package org.wisemvc.as3.core
 		 * Check if a Proxy is registered
 		 * 
 		 * @param proxyName
-		 * @return whether a Proxy is currently registered with the given <code>proxyName</code>.
+		 * 
+		 * @return true if the named proxy is currently registered; else false
 		 */
 		public function hasProxy(proxyName:String):Boolean
 		{
@@ -78,12 +112,15 @@ package org.wisemvc.as3.core
 		 * Remove an <code>IProxy</code> from the <code>Model</code>.
 		 * 
 		 * @param proxyName name of the <code>IProxy</code> instance to be removed.
-		 * @return the <code>IProxy</code> that was removed from the <code>Model</code>
+		 * 
+		 * @return 	the <code>IProxy</code> that was removed from the 
+		 * 			<code>Model</code>. Null if no such registered proxy was found.
 		 */
 		public function removeProxy(proxyName:String):IProxy
 		{
-			var proxy:IProxy = _proxyMap[proxyName] as IProxy;
-			if (proxy)
+			var proxy:IProxy = retrieveProxy(proxyName);
+
+			if (proxy != null)
 			{
 				_proxyMap[proxyName] = null;
 				proxy.onRemove();

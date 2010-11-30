@@ -4,7 +4,7 @@
 */
 package org.wisemvc.as3.patterns.command
 {
-	import org.wisemvc.as3.core.Controller;
+	import org.wisemvc.as3.core.controller.Controller;
 	import org.wisemvc.as3.interfaces.ICommand;
 	import org.wisemvc.as3.interfaces.INotification;
 	import org.wisemvc.as3.patterns.observer.Notifier;
@@ -29,7 +29,7 @@ package org.wisemvc.as3.patterns.command
 		 */
 		function SimpleCommand(controller:Controller)
 		{
-			super(controller);
+			super(controller.sender);
 			_controller = controller;
 		}
 		

@@ -5,7 +5,6 @@
 package org.wisemvc.as3.patterns.mediator
 {
 	import org.wisemvc.as3.core.View;
-	import org.wisemvc.as3.core.controllerSupport.ObserverController;
 	import org.wisemvc.as3.interfaces.IMediator;
 	import org.wisemvc.as3.interfaces.INotification;
 	import org.wisemvc.as3.patterns.observer.Notifier;
@@ -36,7 +35,7 @@ package org.wisemvc.as3.patterns.mediator
 		 */
 		public function Mediator(view:View, mediatorName:String=null, viewComponent:Object=null ) 
 		{
-			super(view.observerCtrl);
+			super(view.observerCtrl.sender);
 			
 			_view = view;
 			_mediatorName = (mediatorName != null) ? mediatorName : NAME;

@@ -5,7 +5,6 @@
 package org.wisemvc.as3.patterns.proxy
 {
 	import org.wisemvc.as3.core.Model;
-	import org.wisemvc.as3.core.controllerSupport.NotificationSender;
 	import org.wisemvc.as3.interfaces.IProxy;
 	import org.wisemvc.as3.patterns.observer.Notifier;
 

@@ -4,7 +4,7 @@
 */
 package org.wisemvc.as3.patterns.command
 {
-	import org.wisemvc.as3.core.Controller;
+	import org.wisemvc.as3.core.controller.Controller;
 	import org.wisemvc.as3.interfaces.ICommand;
 	import org.wisemvc.as3.interfaces.INotification;
 	import org.wisemvc.as3.patterns.observer.Notifier;
@@ -37,13 +37,14 @@ package org.wisemvc.as3.patterns.command
 	public class MacroCommand extends Notifier implements ICommand
 	{
 		protected var _subCommands:Array;
-		protected var _controller:Controller
+		protected var _controller:Controller;
+		
 		/**
 		 * Constructor. 
 		 */
 		function MacroCommand(controller:Controller, subCommands:Array)
 		{
-			super(controller);
+			super(controller.sender);
 			_controller = controller;
 			_subCommands = subCommands;
 		}

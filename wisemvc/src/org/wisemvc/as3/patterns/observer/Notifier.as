@@ -4,7 +4,7 @@
 */
 package org.wisemvc.as3.patterns.observer
 {
-	import org.wisemvc.as3.core.controllerSupport.NotificationSender;
+	import org.wisemvc.as3.core.controller.NotificationSender;
 	import org.wisemvc.as3.interfaces.INotifier;
 
 	/**

@@ -8,9 +8,10 @@
  * PureMVC - Copyright(c) 2006-08 Futurescale, Inc., Some rights reserved.
  * Your reuse is governed by the Creative Commons Attribution 3.0 United States License
  */
-package org.wisemvc.as3.core
+package org.wisemvc.as3.core.controller
 {
-	import org.wisemvc.as3.core.controllerSupport.ObserverController;
+	import org.wisemvc.as3.core.Model;
+	import org.wisemvc.as3.core.View;
 	import org.wisemvc.as3.interfaces.ICommand;
 	import org.wisemvc.as3.interfaces.INotification;
 	import org.wisemvc.as3.interfaces.IObserver;
@@ -25,15 +26,17 @@ package org.wisemvc.as3.core
 	 * 
 	 * <p>An instance of <code>Controller</code> automatically creates an accompanying
 	 * instance of <code>View</code> and <code>Model</code>, which are exposed
-	 * via <code>view</code> and <code>model</code> properties.
-	 * As WiseMVC relies on dependency injection, the application must then ensure
-	 * that these two objects are provided to all instances of any mediators and
+	 * via <code>view</code> and <code>model</code> properties.</p>
+	 * 
+	 * <p>As WiseMVC relies on dependency injection, the application must ensure
+	 * that these two latter two objects are provided to all instances of any mediators and
 	 * proxies that it creates. It order to facilitate registering interest in, and
 	 * the sending of, notifications, <code>View</code> and <code>Model</code> are also
 	 * given restricted access to aspects of <code>Controller's</code> functionality.
-	 * This is achieved by exposing it as an instance of <code>ObserverController</code>
+	 * This is achieved by providing an instance of <code>ObserverController</code>
 	 * to <code>View</code> and <code>NotificationSender</code> to <code>Model</code>. In
-	 * turn, these expose the same data to their associated classes.</p>
+	 * turn, <code>Model</code> and <code>View</code> expose the same data to 
+	 * their associated classes.</p>
 	 * 
 	 * <p>For legacy systems that ignored PureMVC guidelines, <code>Controller</code>
 	 * can be set up to operate in two <i>pragmatic</i> modes whereby it allows <code>Model</code>
@@ -49,11 +52,13 @@ package org.wisemvc.as3.core
 	 * @see Model
 	 * @see View
 	 */
-	public class Controller extends ObserverController
+	public class Controller
 	{
 		protected var _commandMap:Array;
 		protected var _model:Model;
 		protected var _view:View;
+		protected var _observerCtrl:ObserverController;
+		protected var _sender:NotificationSender;
 		
 		/**
 		 * Constructor.
@@ -65,7 +70,7 @@ package org.wisemvc.as3.core
 		 * 									irrelevant. If false, allowAccessToObservers
 		 * 									comes into play.
 		 * @param allowAccessToObservers	Assuming pragmaticMode is false, then: if 
-		 * 									false itself, then Model access to 
+		 * 									false itself, then Model has access to 
 		 * 									<code>NotificationSender</code>; else if true,
 		 * 									Model gets access to <code>ObserverController</code>.
 		 * 									View is unaffected by this parameter.
@@ -74,18 +79,31 @@ package org.wisemvc.as3.core
 								   allowAccessToObservers:Boolean=false)
 		{
 			_commandMap = [];			
-			setUpViewAndModel(pragmaticMode, allowAccessToObservers);
+			setUpSenderAndCtrl(pragmaticMode, allowAccessToObservers);
+			setUpViewAndModel();
 		}
 
 		/**
-		 * Sets up _controller and _observerCtrl according to the state of pragmaticMode
-		 * and allowAccessToObservers. It also creates the instances of Model and View.
-		 * 
-		 * @param pragmaticMode				See constructor
-		 * @param allowAccessToObservers	See constructor
+		 * Sets up the <code>View</code> and <code>Model</code> instances 
+		 * associated with this <code>Controller</code>
 		 */
-		protected function setUpViewAndModel(pragmaticMode:Boolean, 
-											 allowAccessToObservers:Boolean):void
+		protected function setUpViewAndModel():void
+		{
+			_model = new Model(_sender);
+			_view = new View(_observerCtrl);
+		}
+
+		/**
+		 * Sets up the <code>ObserverController</code> and 
+		 * <code>NotificationSender</code> associated with this 
+		 * <code>Controller</code>. It also deals with any pragmatic mode 
+		 * requirements.
+		 * 
+		 * @param pragmaticMode				See the constructor for details
+		 * @param allowAccessToObservers	NotificationSender
+		 */
+		protected function setUpSenderAndCtrl(pragmaticMode:Boolean, 
+											  allowAccessToObservers:Boolean):void
 		{
 			var controllerRef:Controller = null;
 			var observerCtrlRef:ObserverController = null;
@@ -95,16 +113,15 @@ package org.wisemvc.as3.core
 				controllerRef = this;
 			}
 			
+			_observerCtrl = new ObserverController();
+			
 			if (pragmaticMode || allowAccessToObservers)
 			{
-				observerCtrlRef = this;
+				observerCtrlRef = _observerCtrl;
 			}
-			
-			_controller = controllerRef;
-			_observerCtrl = observerCtrlRef;
-			
-			_model = new Model(this);
-			_view = new View(this);
+
+			_sender = new NotificationSender(controllerRef, observerCtrlRef);
+			_observerCtrl.notificationSender = _sender;
 		}
 		
 		/**
@@ -116,11 +133,30 @@ package org.wisemvc.as3.core
 		}
 		
 		/**
-		 * The <code>View</code> instance associated with this Controller. 
+		 * The <code>View</code> instance associated with this 
+		 * <code>Controller</code>. 
 		 */
 		public function get view():View
 		{
 			return _view;
+		}
+		
+		/**
+		 * The <code>NotificationSender</code> instance associated with this 
+		 * <code>Controller</code>. 
+		 */
+		public function get sender():NotificationSender
+		{
+			return _sender;
+		}
+		
+		/**
+		 * The <code>ObserverController</code> instance associated with this 
+		 * <code>Controller</code>. 
+		 */
+		public function get observerCtrl():ObserverController
+		{
+			return _observerCtrl;
 		}
 		
 		/**
@@ -138,6 +174,22 @@ package org.wisemvc.as3.core
 		{
 			return view;
 		}
+		
+		/**
+		 * Language-generic version of the sender property. 
+		 */
+		public function getSender():NotificationSender
+		{
+			return sender;
+		}
+		
+		/**
+		 * Language-generic version of the observerCtrl property.
+		 */
+		public function getObserverCtrl():ObserverController
+		{
+			return observerCtrl;
+		}
 
 		/**
 		 * Notify the <code>IObservers</code> for a particular <code>INotification</code>.
@@ -151,7 +203,7 @@ package org.wisemvc.as3.core
 		 */
 		public function notifyObservers(notification:INotification):void
 		{
-			notifyAllObservers(notification);
+			_sender.notifyAllObservers(notification);
 		}
 
 		/**
@@ -189,7 +241,7 @@ package org.wisemvc.as3.core
 		{
 			if (_commandMap[notificationName] == null) 
 			{
-				registerObserver(notificationName, new Observer(executeCommand, this));
+				_observerCtrl.registerObserver(notificationName, new Observer(executeCommand, this));
 			}
 			_commandMap[notificationName] = commandClassRef;
 		}
@@ -214,7 +266,7 @@ package org.wisemvc.as3.core
 		{
 			if (hasCommand(notificationName))
 			{
-				removeObserver(notificationName, this);
+				_observerCtrl.removeObserver(notificationName, this);
 				_commandMap[notificationName] = null;
 			}
 		}
